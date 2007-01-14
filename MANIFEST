@@ -1,0 +1,8 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/Getopt-Mixed-Help.t
+t/fail.pl
+lib/Getopt/Mixed/Help.pm
+META.yml                                 Module meta-data (added by MakeMaker)

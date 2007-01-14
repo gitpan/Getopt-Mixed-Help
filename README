@@ -1,0 +1,32 @@
+Getopt-MixedHelp version 0.17
+=============================
+
+Getopt::Mixed::Help is a simplified interface to Getopt::Mixed adding
+usage (help) functionality.  It automatically adds the options -?, -h
+and --help (the last two configurable) to print the usage text.  It
+allows to get option values from the environment (if the operating
+system it runs on supports environment variables).  It can also add
+different flavours of support for multiple options.  Finally it
+supports debugging output of the options used.
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module requires Getopt::Mixed which is part of the standard
+installation for a while now.
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2004-2007 by Thomas Dorner
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.6.1 or,
+at your option, any later version of Perl 5 you may have available.
