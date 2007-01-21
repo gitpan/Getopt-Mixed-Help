@@ -408,7 +408,7 @@ use Getopt::Mixed;
 
 use vars '$optUsage';
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 # default strings used for indent:
 use constant DEFAULT_USAGE => 'usage';

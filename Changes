@@ -1,5 +1,8 @@
 Revision history for Perl extension Getopt::Mixed::Help.
 
+0.18	(21.01.2007)
+	fixed missing dependency for Getopt::Mixed
+
 0.17	(13.01.2007)
 	Improved abstract, renamed to Getopt::Mixed::Help
 
