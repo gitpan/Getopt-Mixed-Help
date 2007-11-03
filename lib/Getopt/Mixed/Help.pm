@@ -37,6 +37,10 @@ system it runs on supports environment variables).  It can also add
 different flavours of support for multiple options.  Finally it
 supports debugging output of the options used.
 
+So like Getopt::Mixed it is (just another) module that parses options
+passed on the command line into variables while removing them from
+@ARGV.  Only normal parameters remain in @ARGV.
+
 =head1 DESCRIPTION
 
 The module uses a direct import mechanism called with a hash as
@@ -408,7 +412,7 @@ use Getopt::Mixed;
 
 use vars '$optUsage';
 
-our $VERSION = '0.18';
+our $VERSION = '0.20';
 
 # default strings used for indent:
 use constant DEFAULT_USAGE => 'usage';

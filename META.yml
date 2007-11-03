@@ -1,11 +1,14 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         Getopt-Mixed-Help
-version:      0.18
-version_from: lib/Getopt/Mixed/Help.pm
-installdirs:  site
-requires:
+--- #YAML:1.0
+name:                Getopt-Mixed-Help
+version:             0.20
+abstract:            combine L<C<Getopt::Mixed>> with usage and help
+license:             ~
+generated_by:        ExtUtils::MakeMaker version 6.36
+distribution_type:   module
+requires:     
     Getopt::Mixed:                 0
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.30
+meta-spec:
+    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
+    version: 1.2
+author:
+    - Thomas Dorner <dorner (AT) pause.org>

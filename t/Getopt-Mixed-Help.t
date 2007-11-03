@@ -16,7 +16,7 @@ require_ok 'Getopt::Mixed::Help';
 # cover -delete
 # HARNESS_PERL_SWITCHES=-MDevel::Cover=-silent,on,-summary,off make test
 # cover
-my $perl = 'perl';
+my $perl = $Config{perlpath};
 $perl .= ' ' . $ENV{HARNESS_PERL_SWITCHES}
     if defined $ENV{HARNESS_PERL_SWITCHES};
 
@@ -578,59 +578,72 @@ delete $ENV{TEST_OPT__};
 #########################################################################
 # tests needing a subprocess:
 eval {
-    # As Getopt::Mixed and ourself will sometimes fail with exit(-1)
-    # the following last tests are more complicated (and I hope the
-    # I/O redirection will work everywhere):
-    local %ENV;
-    $ENV{PERL5LIB} = join $Config{path_sep}, @INC;
+ SKIP: {
+	# As Getopt::Mixed and ourself will sometimes fail with exit(-1)
+	# the following last tests are more complicated.  As I/O
+	# redirection doesn't seem to work correctly everywhere (failing
+	# cpan-testers tests for those tests), we test that first and skip
+	# the tests if we forsee any problems.
+	my $cmd = "perl -e 'die'";
+	my $output = `$cmd 2>&1`;
+	skip "redirection of output doesn't work as expected ($?): $output", 18
+	    if $? == 0 or $output !~ m/^Died at -e line 1.*$/;
 
-    my $cmd = $perl.' '.File::Spec->catpath($volume, $directories, 'fail.pl');
-    my $output = `$cmd -x 2>&1`;
-    isnt($?, 0, 'unknown option should fail');
-    is($output, <<EOM,
+	local %ENV;
+	$ENV{PERL5LIB} = join $Config{path_sep}, @INC;
+
+	$cmd = $perl.' '.File::Spec->catpath($volume, $directories, 'fail.pl');
+	$output = `$cmd -x 2>&1`;
+	isnt($?, 0, 'unknown option should fail');
+	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
+	is($output, <<EOM,
 fail.pl: unrecognized option `-x'
 Try `fail.pl --help' for more information.
 EOM
-      'unknown option should fail with error message');
+	   'unknown option should fail with error message');
 
-    $output = `$cmd -? 2>&1`;
-    isnt($?, 0, 'calling for help (-?) should fail');
-    is($output, <<EOM,
+	$output = `$cmd -? 2>&1`;
+	isnt($?, 0, 'calling for help (-?) should fail');
+	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
+	is($output, <<EOM,
 usage: fail.pl [<options>] [--]
 
 options:  -b|--boolean
               a boolean (flag)
 EOM
-      'calling for help (-?) should fail with usage text');
+	   'calling for help (-?) should fail with usage text');
 
-    $output = `$cmd -h 2>&1`;
-    isnt($?, 0, 'calling for help (-h) should fail');
-    is($output, <<EOM,
+	$output = `$cmd -h 2>&1`;
+	isnt($?, 0, 'calling for help (-h) should fail');
+	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
+	is($output, <<EOM,
 usage: fail.pl [<options>] [--]
 
 options:  -b|--boolean
               a boolean (flag)
 EOM
-      'calling for help (-h) should fail with usage text');
+	   'calling for help (-h) should fail with usage text');
 
-    $output = `$cmd parameter 2>&1`;
-    isnt($?, 0, 'calling with parameter should fail');
-    is($output, <<EOM,
+	$output = `$cmd parameter 2>&1`;
+	isnt($?, 0, 'calling with parameter should fail');
+	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
+	is($output, <<EOM,
 usage: fail.pl [<options>] [--]
 
 options:  -b|--boolean
               a boolean (flag)
 EOM
-      'calling with parameter should fail with usage text');
+	   'calling with parameter should fail with usage text');
 
-    $cmd = ($perl." -e '".
-	    'use Getopt::Mixed::Help("'.
-	    join('", "', @all, 'd>debug' => 'turn on debugging').
-	    '");'.
-	    "' -- -d -s=Test -g=5.0 -i 42 x y z");
-    $output = `$cmd 2>&1`;
-    is($?, 0, 'test with normal debug option should succeed');
-    is($output, <<EOM,
+	$cmd = ($perl." -e '".
+		'use Getopt::Mixed::Help("'.
+		join('", "', @all, 'd>debug' => 'turn on debugging').
+		'");'.
+		"' -- -d -s=Test -g=5.0 -i 42 x y z");
+	$output = `$cmd 2>&1`;
+	is($?, 0, 'test with normal debug option should succeed');
+	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
+	is($output, <<EOM,
 options:  
           \$opt_boolean:              undef
           \$opt_long_optional_string: undef
@@ -646,16 +659,17 @@ parameter:
           "y"
           "z"
 EOM
-       'normal debugging option and output');
+	   'normal debugging option and output');
 
-    $cmd = ($perl." -e '".
-	    'use Getopt::Mixed::Help("'.
-	    join('", "', @all, '->help' => 'H>Hilfe').
-	    '");'.
-	    "' --");
-    $output = `$cmd -H 2>&1`;
-    isnt($?, 0, 'calling for renamed help should fail');
-    is($output, <<EOM,
+	$cmd = ($perl." -e '".
+		'use Getopt::Mixed::Help("'.
+		join('", "', @all, '->help' => 'H>Hilfe').
+		'");'.
+		"' --");
+	$output = `$cmd -H 2>&1`;
+	isnt($?, 0, 'calling for renamed help should fail');
+	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
+	is($output, <<EOM,
 usage: -e [<options>] [--] <filenames>...
 
 filenames to be used
@@ -679,28 +693,30 @@ options:  -b|--boolean
 
 (*) some more text
 EOM
-       'calling for renamed help should fail with usage text');
+	   'calling for renamed help should fail with usage text');
 
-    $cmd = ($perl." -e '".
-	    'use Getopt::Mixed::Help("'.
-	    join('", "', @all, '->help' => 'H>Hilfe').
-	    '");'.
-	    "' --");
-    $output = `$cmd -h 2>&1`;
-    isnt($?, 0, 'calling for help after rename should fail');
-    is($output,
-       "-e: unrecognized option `-h'\n",
-       'calling for help after rename should fail with usage text');
+	$cmd = ($perl." -e '".
+		'use Getopt::Mixed::Help("'.
+		join('", "', @all, '->help' => 'H>Hilfe').
+		'");'.
+		"' --");
+	$output = `$cmd -h 2>&1`;
+	isnt($?, 0, 'calling for help after rename should fail');
+	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
+	is($output,
+	   "-e: unrecognized option `-h'\n",
+	   'calling for help after rename should fail with usage text');
 
-    $cmd = ($perl." -e '".
-	    'use Getopt::Mixed::Help("'.
-	    join('", "', @all, '->debug' => 'verbose',
-		 'v>verbose' => 'turn on debugging').
-	    '");'.
-	    "' -- -s=Test -g=5.0 -v -i 42 4 2 4.7");
-    $output = `$cmd 2>&1`;
-    is($?, 0, 'test with renamed debug option should succeed');
-    is($output, <<EOM,
+	$cmd = ($perl." -e '".
+		'use Getopt::Mixed::Help("'.
+		join('", "', @all, '->debug' => 'verbose',
+		     'v>verbose' => 'turn on debugging').
+		'");'.
+		"' -- -s=Test -g=5.0 -v -i 42 4 2 4.7");
+	$output = `$cmd 2>&1`;
+	is($?, 0, 'test with renamed debug option should succeed');
+	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
+	is($output, <<EOM,
 options:  
           \$opt_boolean:              undef
           \$opt_long_optional_string: undef
@@ -716,20 +732,21 @@ parameter:
           2
           4.7
 EOM
-       'renamed debugging option and output');
+	   'renamed debugging option and output');
 
-    $cmd = ($perl." -e '".
-	    'use Getopt::Mixed::Help("'.
-	    join('", "',
-		 @parameter,
-		 '->options' => 'switches',
-		 @all_options,
-		 '->usage' => 'use this like').
-	    '");'.
-	    "' --");
-    $output = `$cmd -? 2>&1`;
-    isnt($?, 0, 'calling for help with altered texts should fail');
-    is($output, <<EOM,
+	$cmd = ($perl." -e '".
+		'use Getopt::Mixed::Help("'.
+		join('", "',
+		     @parameter,
+		     '->options' => 'switches',
+		     @all_options,
+		     '->usage' => 'use this like').
+		'");'.
+		"' --");
+	$output = `$cmd -? 2>&1`;
+	isnt($?, 0, 'calling for help with altered texts should fail');
+	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
+	is($output, <<EOM,
 use this like: -e [<switches>] [--] <filenames>...
 
 filenames to be used
@@ -753,7 +770,8 @@ switches:  -b|--boolean
 
 (*) some more text
 EOM
-       'calling for help with altered texts should fail with alt. usage text');
+	   'calling for help with altered texts should fail with alt. usage text');
+    }
 };
 is($@, '', 'tests with subprograms should not fail the surrounding eval');
 
@@ -899,18 +917,25 @@ like($@,
 #########################################################################
 # 2nd tests needing a subprocess (see 1st bunch for details):
 eval {
-    local %ENV;
-    $ENV{PERL5LIB} = join $Config{path_sep}, @INC;
+ SKIP: {
+	my $cmd = "perl -e 'die'";
+	my $output = `$cmd 2>&1`;
+	skip "redirection of output doesn't work as expected ($?): $output", 1
+	    if $? == 0 or $output !~ m/^Died at -e line 1.*$/;
 
-    my $cmd = ($perl." -e '".
-	       'use Getopt::Mixed::Help("'.
-	       join('", "', @all, 'd>debug' => 'turn on debugging',
-		    '->multiple' => ', ').
-	       '");'.
-	       "' -- -d -s=Test -s=Case -i=5 -t=x -t -t=z -g=5.0 -g-47.42 -i 42");
-    my $output = `$cmd 2>&1`;
-    is($?, 0, 'concat test - multiples, debug - should succeed');
-    is($output, <<EOM,
+	local %ENV;
+	$ENV{PERL5LIB} = join $Config{path_sep}, @INC;
+
+	$cmd = ($perl." -e '".
+		'use Getopt::Mixed::Help("'.
+		join('", "', @all, 'd>debug' => 'turn on debugging',
+		     '->multiple' => ', ').
+		'");'.
+		"' -- -d -s=Test -s=Case -i=5 -t=x -t -t=z -g=5.0 -g-47.42 -i 42");
+	$output = `$cmd 2>&1`;
+	is($?, 0, 'concat test - multiples, debug - should succeed');
+	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
+	    is($output, <<EOM,
 options:  
           \$opt_boolean:              undef
           \$opt_long_optional_string: undef
@@ -922,6 +947,7 @@ options:
           \$opt_optional_float:       -42.42
           \$opt_debug:                1
 EOM
-       'concat test - multiples, debug - output');
+	       'concat test - multiples, debug - output');
+    }
 };
 is($@, '', 'tests with 2nd subprograms should not fail the surrounding eval');
