@@ -1,3 +1,4 @@
+Build.PL
 Changes
 Examples/gmh-example.pl
 MANIFEST
@@ -8,4 +9,4 @@ t/GMH-pod-coverage.t
 t/GMH-pod.t
 t/Getopt-Mixed-Help.t
 t/fail.pl
-META.yml                                 Module meta-data (added by MakeMaker)
+META.yml

@@ -8,12 +8,14 @@
 # GMH__.
 #
 # Author: Thomas Dorner
-# Copyright: (C) 2007 by Thomas Dorner (Artistic License)
+# Copyright: (C) 2007-2008 by Thomas Dorner (Artistic License)
 
 use strict;
 use warnings;
 
 use File::Spec;
+
+use constant DEFAULT_SECOND_MANDATORY_INT => 42;
 
 BEGIN {
     # allow for usage in directory where archive got unpacked:
@@ -31,6 +33,7 @@ BEGIN {
 	 's>mandatory-string=s text'	    => 'a mandatory string',
 	 'i>mandatory-integer=i number'	    => 'a mandatory integer (1)',
 	 'f>mandatory-float=f real number'  => 'a mandatory real number',
+	 '2>second-mandatory-int=i number'  => 'another mandatory integer',
 	 'S>optional-string:s text'	    => 'an optional string (2)',
 	 'I>optional-integer:i value'	    => 'an optional integer',
 	 'F>optional-float:f value'	    => 'an optional real number',

@@ -1,14 +1,22 @@
---- #YAML:1.0
-name:                Getopt-Mixed-Help
-version:             0.20
-abstract:            combine L<C<Getopt::Mixed>> with usage and help
-license:             ~
-generated_by:        ExtUtils::MakeMaker version 6.36
-distribution_type:   module
-requires:     
-    Getopt::Mixed:                 0
+---
+name: Getopt-Mixed-Help
+version: 0.21
+author: []
+abstract: combine L<C<Getopt::Mixed>> with usage and help
+license: perl
+resources:
+  license: http://dev.perl.org/licenses/
+requires:
+  Getopt::Mixed: 0
+  perl: 5.6.1
+recommends:
+  Test::Pod: 0
+  Test::Pod::Coverage: 0
+provides:
+  Getopt::Mixed::Help:
+    file: lib/Getopt/Mixed/Help.pm
+    version: 0.21
+generated_by: Module::Build version 0.2808
 meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
-    version: 1.2
-author:
-    - Thomas Dorner <dorner (AT) pause.org>
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2

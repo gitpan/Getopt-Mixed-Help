@@ -8,6 +8,7 @@ Getopt::Mixed::Help - combine L<C<Getopt::Mixed>> with usage and help
 
 =head1 SYNOPSIS
 
+    use DEFAULT_LOOPS => 10;
     use Getopt::Mixed::Help
 	('<filenames>...' => 'filenames to be processed',
 	 'ENV' => 'SCRIPT_OPT_',
@@ -16,6 +17,7 @@ Getopt::Mixed::Help - combine L<C<Getopt::Mixed>> with usage and help
 	 'e>execute' => 'do it without asking for confirmation',
 	 'f>force' => 'override all safety checks',
 	 'i>interactive' => 'asks for confirmation before doing it',
+	 'l>loops count' => 'number of loops to do',
 	 'n>no-execute' => 'just print what would be done without doing it',
 	 'q>quiet' => 'suppress all information',
 	 's>summary' => 'print summary information on exit',
@@ -87,7 +89,8 @@ BEHAVIOUR"> section.
 
 =head1 EXPORT
 
-The module automatically exports all option variables (C<$opt_>).
+The module automatically exports all option variables (C<$opt_>) as
+well as the usage text (C<$optUsage>).
 
 =head1 OPTION DETAILS
 
@@ -246,6 +249,35 @@ theoretically you could also put one in-between to split the option
 list into two (or more) parts - the footnote is put into the help text
 just where it occurs.
 
+=head1 DEFINING DEFAULT VALUES USING PERL CONSTANTS
+
+If you define a Perl constant (C<use constant>) beginning with
+C<DEFAULT_> and ending with the name of the long option where all
+characters are turned into uppercase and all hyphens are replaces with
+underscores, e.g. for the import parameters
+
+    'd>start-dir=s directory' => 'name of the first directory'
+
+a
+
+    use constant DEFAULT_START_DIR => '.';
+
+the variable C<$opt_start_dir> will be initialised, if no other value
+is specified by environment variable or on the command line.  (Options
+on the command line overrule the values specified in environment
+variables, which themselves overrule the default values of the Perl
+constants.)
+
+In addition the default value will also be added to the help text for
+that option.  The additional text will be put into parentheses and
+starts with the words C<defaults to>.  See below how to change that.
+
+Note that all Perl constants with default values must be defined
+before the C<use> command including this module, otherwise they have
+no effect.  Also note that they must belong to the C<main::>
+namespace.  And finally note that only simple values are supported
+yet.
+
 =head1 CHANGING DEFAULT BEHAVIOUR
 
 Some declarations looking like silly declarations (they all start with
@@ -305,6 +337,20 @@ C<$optUsage>.
 With this modifying option you can replace the text C<options> in the
 help text with the string specified in the value part of this
 declaration.  Note that the string occurs two times.
+
+Due to the way the help text is constructed this option has to be
+specified before the first normal option of the import (use)
+statement!
+
+=head2 changing the default value text ('->default' => ' (init. %s)')
+
+With this modifying option you can replace the text appended for
+options with default values set by Perl constant (C< (defaults to
+%s)>) in the help text with the string specified in the value part of
+this declaration.  Note that the string must contain a C<%s> as it is
+put together with C<sprintf> (see L<perldoc/sprintf>).  You may also
+set this modifying option to C<undef> to disable the additional help
+text.
 
 Due to the way the help text is constructed this option has to be
 specified before the first normal option of the import (use)
@@ -392,7 +438,7 @@ Multiple options as string on a per-option-base is not supported, but
 you can get that with short statement like the following:
 
     $opt_directory = join(' ', @$opt_directory)
-        if ref($opt_directory) = 'ARRAY';
+        if ref($opt_directory) eq 'ARRAY';
 
 =head1 FUNCTIONS
 
@@ -412,11 +458,12 @@ use Getopt::Mixed;
 
 use vars '$optUsage';
 
-our $VERSION = '0.20';
+our $VERSION = '0.21';
 
-# default strings used for indent:
+# default strings (they are the ones used for indent!):
 use constant DEFAULT_USAGE => 'usage';
 use constant DEFAULT_OPTIONS => 'options';
+use constant DEFAULT_DEFAULT => ' (defaults to %s)';
 
 #########################################################################
 
@@ -446,6 +493,7 @@ sub import
     my $indent_opt1 = $options_text.':  ';
     my $indent_opt2 = ' ' x (length($options_text) + 3);
     my $indent_help = ' ' x (length($options_text) + 7);
+    my $default_template = DEFAULT_DEFAULT;
 
     $optUsage = '';
     # check/support commandline parameters that are NOT options:
@@ -472,6 +520,7 @@ sub import
     my $use_multiple = 0;
     my $multiple = undef;
     my %multiple_options = ();
+    my $package = (caller)[0];
 
     # preparation loop (module parameters):
     while (@_ > 0)
@@ -482,6 +531,31 @@ sub import
 	{
 	    my ($short_option, $is_multiple, $long_option, $specifier,
 		$opt_valtext) = ($1, $2, $3, $4, $5);
+	    my $var = 'opt_'.$long_option;
+	    $var =~ s/\W/_/g;
+	    my $default_text = '';
+	    {
+		my $default_constant = 'DEFAULT_'.uc($long_option);
+		$default_constant =~ s/\W/_/g;
+		no strict 'refs';
+		no warnings 'once';
+		my $default_cref = *{$package.'::'.$default_constant}{CODE};
+		if ( ref($default_cref) eq 'CODE')
+		{
+		    if (ref(&$default_cref) eq '')
+		    {
+			$default_text =
+			    sprintf($default_template, &$default_cref);
+		    }
+		    else
+		    {
+			croak(ref(&$default_cref), ' constants as ',
+			      'default values are not yet supported in ',
+			      __PACKAGE__);
+		    }
+		    $default_value{$var} = &$default_cref;
+		}
+	    }
 	    $specifier = '' unless defined $specifier;
 	    if ($opt_valtext  and  $specifier =~ m/^=/)
 	    {
@@ -507,7 +581,7 @@ sub import
 	    }
 	    elsif (defined $opt_valtext)
 	    {
-		die 'internal inconsistancy: specifierless value text in ',
+		die 'internal inconsistency: specifierless value text in ',
 		    $option
 	    }
 	    else
@@ -515,12 +589,10 @@ sub import
 	    $optUsage .= 0 == @option_vars ? $indent_opt1 : $indent_opt2;
 	    $optUsage .= '-'.$short_option.'|' if defined $short_option;
 	    $optUsage .= '--'.$long_option.$opt_valtext."\n";
-	    $optUsage .= $indent_help.(shift)."\n";
+	    $optUsage .= $indent_help.(shift).$default_text."\n";
 	    $options .= ' '.$long_option.$specifier;
 	    $options .= ' '.$short_option.'>'.$long_option
 		if defined $short_option;
-	    $long_option =~ s/\W/_/g;
-	    my $var = 'opt_'.$long_option;
 	    push @option_vars, $var;
 	    $option_type{$var} = $specifier;
 	    $option_type{$var} =~ s/[:=]//;
@@ -550,6 +622,13 @@ sub import
 	    m/^([-a-z0-9]{2,})$/i  or
 		croak 'bad renaming of debug in ', __PACKAGE__;
 	    $debug_opt_name = 'opt_'.$1;
+	}
+	elsif ($option eq '->default')
+	{
+	    $_ = shift;
+	    m/%s/i  or
+		croak 'default text must contain %s in ', __PACKAGE__;
+	    $default_template = $_;
 	}
 	elsif ($option eq '->help')
 	{
@@ -643,7 +722,7 @@ sub import
 		{ $$option .= $multiple . $value }
 		else
 		{
-		    die 'internal inconsistancy: $option_type{$option} is ',
+		    die 'internal inconsistency: $option_type{$option} is ',
 			$option_type{$option}
 		}
 	    }
@@ -661,7 +740,7 @@ sub import
 		{ push @{$$option}, $value }
 		else
 		{
-		    die 'internal inconsistancy: ref($$option) is ',
+		    die 'internal inconsistency: ref($$option) is ',
 			ref($$option)
 		}
 	    }
@@ -685,8 +764,14 @@ sub import
 	}
     }
 
+    # get defaults from constants:
+    foreach (keys %default_value)
+    {
+	next if defined $$_;
+	$$_ = $default_value{$_};
+    }
+
     # declare main option variables and export local option variables to it:
-    my $package = (caller)[0];
     *{$package.'::optUsage'} = \$optUsage;
     {
 	no warnings "once";	# disable "GM::opt_ ... used only once" warning
@@ -738,7 +823,7 @@ Thomas Dorner, E<lt>dorner (AT) pause.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2004-2007 by Thomas Dorner
+Copyright (C) 2004-2008 by Thomas Dorner
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.6.1 or,

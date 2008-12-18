@@ -1,5 +1,10 @@
 Revision history for Perl extension Getopt::Mixed::Help.
 
+0.21	(05.04.2008-18.12.2008)
+	hopefully finally fixed tests for Windows
+	added support of default constants
+	added Build.PL
+
 0.20	(31.10.2007)
 	improved path to Perl executable in test (failed on Cygwin)
 

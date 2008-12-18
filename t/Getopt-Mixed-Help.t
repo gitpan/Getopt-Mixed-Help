@@ -5,7 +5,7 @@
 
 #########################################################################
 
-use Test::More tests => 473;
+use Test::More tests => 486;
 
 use Config;
 use File::Spec;
@@ -84,6 +84,11 @@ like($@,
      qr/^bad renaming of debug in $re_msg_tail/,
      'import with bad renaming of debug should fail');
 
+eval { import Getopt::Mixed::Help('->default' => 'x') };
+like($@,
+     qr/^default text must contain %s in $re_msg_tail/,
+     'import with bad renaming of default should fail');
+
 eval { import Getopt::Mixed::Help('->help' => 'x') };
 like($@,
      qr/^bad renaming of help in $re_msg_tail/,
@@ -119,14 +124,14 @@ EOU
    'usage of option-less parameter list');
 
 test_simple_import('boolean option is set (short)',
-		 \@boolean, [qw(-b)],
-		 'opt_boolean', 1);
+		   \@boolean, [qw(-b)],
+		   'opt_boolean', 1);
 test_simple_import('boolean option is not set',
-		 \@boolean, [],
-		 'opt_boolean', undef);
+		   \@boolean, [],
+		   'opt_boolean', undef);
 test_simple_import('boolean option is set (long)',
-		 \@boolean, [qw(--boolean)],
-		 'opt_boolean', 1);
+		   \@boolean, [qw(--boolean)],
+		   'opt_boolean', 1);
 is($optUsage,
    <<EOU,
 usage: Getopt-Mixed-Help.t [<options>] [--]
@@ -146,29 +151,29 @@ test_simple_import('unset boolean and global ENV',
 delete $ENV{TEST_OPT__};
 
 test_simple_import('mandatory string option (short, separate)',
-		 \@mand_str, [qw(-s text1)],
-		 'opt_mandatory_string', 'text1');
+		   \@mand_str, [qw(-s text1)],
+		   'opt_mandatory_string', 'text1');
 test_simple_import('mandatory string option (short, concatenated)',
-		 \@mand_str, [qw(-stext2)],
-		 'opt_mandatory_string', 'text2');
+		   \@mand_str, [qw(-stext2)],
+		   'opt_mandatory_string', 'text2');
 test_simple_import('mandatory string option (long, separate)',
-		 \@mand_str, [qw(--mandatory-string text3)],
-		 'opt_mandatory_string', 'text3');
+		   \@mand_str, [qw(--mandatory-string text3)],
+		   'opt_mandatory_string', 'text3');
 test_simple_import('mandatory string option (long, concatenated)',
-		 \@mand_str, [qw(--mandatory-string=text4)],
-		 'opt_mandatory_string', 'text4');
+		   \@mand_str, [qw(--mandatory-string=text4)],
+		   'opt_mandatory_string', 'text4');
 test_simple_import('mandatory string option (short, separate, minus)',
-		 \@mand_str, [qw(-s -text1)],
-		 'opt_mandatory_string', '-text1');
+		   \@mand_str, [qw(-s -text1)],
+		   'opt_mandatory_string', '-text1');
 test_simple_import('mandatory string option (short, concatenated, minus)',
-		 \@mand_str, [qw(-s-text2)],
-		 'opt_mandatory_string', '-text2');
+		   \@mand_str, [qw(-s-text2)],
+		   'opt_mandatory_string', '-text2');
 test_simple_import('mandatory string option (long, separate, minus)',
-		 \@mand_str, [qw(--mandatory-string -text3)],
-		 'opt_mandatory_string', '-text3');
+		   \@mand_str, [qw(--mandatory-string -text3)],
+		   'opt_mandatory_string', '-text3');
 test_simple_import('mandatory string option (long, concatenated, minus)',
-		 \@mand_str, [qw(--mandatory-string=-text4)],
-		 'opt_mandatory_string', '-text4');
+		   \@mand_str, [qw(--mandatory-string=-text4)],
+		   'opt_mandatory_string', '-text4');
 is($optUsage,
    <<EOU,
 usage: Getopt-Mixed-Help.t [<options>] [--]
@@ -179,29 +184,29 @@ EOU
    'usage of mandatory string option');
 
 test_simple_import('mandatory integer option (short, separate)',
-		 \@mand_int, [qw(-i 1)],
-		 'opt_mandatory_integer', 1);
+		   \@mand_int, [qw(-i 1)],
+		   'opt_mandatory_integer', 1);
 test_simple_import('mandatory integer option (short, concatenated)',
-		 \@mand_int, [qw(-i2)],
-		 'opt_mandatory_integer', 2);
+		   \@mand_int, [qw(-i2)],
+		   'opt_mandatory_integer', 2);
 test_simple_import('mandatory integer option (long, separate)',
-		 \@mand_int, [qw(--mandatory-integer 3)],
-		 'opt_mandatory_integer', 3);
+		   \@mand_int, [qw(--mandatory-integer 3)],
+		   'opt_mandatory_integer', 3);
 test_simple_import('mandatory integer option (long, concatenated)',
-		 \@mand_int, [qw(--mandatory-integer=4)],
-		 'opt_mandatory_integer', 4);
+		   \@mand_int, [qw(--mandatory-integer=4)],
+		   'opt_mandatory_integer', 4);
 test_simple_import('mandatory integer option (short, separate, negative)',
-		 \@mand_int, [qw(-i -1)],
-		 'opt_mandatory_integer', -1);
+		   \@mand_int, [qw(-i -1)],
+		   'opt_mandatory_integer', -1);
 test_simple_import('mandatory integer option (short, concatenated, negative)',
-		 \@mand_int, [qw(-i-2)],
-		 'opt_mandatory_integer', -2);
+		   \@mand_int, [qw(-i-2)],
+		   'opt_mandatory_integer', -2);
 test_simple_import('mandatory integer option (long, separate, negative)',
-		 \@mand_int, [qw(--mandatory-integer -3)],
-		 'opt_mandatory_integer', -3);
+		   \@mand_int, [qw(--mandatory-integer -3)],
+		   'opt_mandatory_integer', -3);
 test_simple_import('mandatory integer option (long, concatenated, negative)',
-		 \@mand_int, [qw(--mandatory-integer=-4)],
-		 'opt_mandatory_integer', -4);
+		   \@mand_int, [qw(--mandatory-integer=-4)],
+		   'opt_mandatory_integer', -4);
 is($optUsage,
    <<EOU,
 usage: Getopt-Mixed-Help.t [<options>] [--]
@@ -212,29 +217,29 @@ EOU
    'usage of mandatory integer option');
 
 test_simple_import('mandatory real number option (short, separate)',
-		 \@mand_float, [qw(-f 1.1)],
-		 'opt_mandatory_float', 1.1);
+		   \@mand_float, [qw(-f 1.1)],
+		   'opt_mandatory_float', 1.1);
 test_simple_import('mandatory real number option (short, concatenated)',
-		 \@mand_float, [qw(-f2.2)],
-		 'opt_mandatory_float', 2.2);
+		   \@mand_float, [qw(-f2.2)],
+		   'opt_mandatory_float', 2.2);
 test_simple_import('mandatory real number option (long, separate)',
-		 \@mand_float, [qw(--mandatory-float 3.3)],
-		 'opt_mandatory_float', 3.3);
+		   \@mand_float, [qw(--mandatory-float 3.3)],
+		   'opt_mandatory_float', 3.3);
 test_simple_import('mandatory real number option (long, concatenated)',
-		 \@mand_float, [qw(--mandatory-float=4.4)],
-		 'opt_mandatory_float', 4.4);
+		   \@mand_float, [qw(--mandatory-float=4.4)],
+		   'opt_mandatory_float', 4.4);
 test_simple_import('mandatory real number option (short, separate, negative)',
-		 \@mand_float, [qw(-f -1.1)],
-		 'opt_mandatory_float', -1.1);
+		   \@mand_float, [qw(-f -1.1)],
+		   'opt_mandatory_float', -1.1);
 test_simple_import('mandatory real number option (short, concatenated, negative)',
-		 \@mand_float, [qw(-f-2.2)],
-		 'opt_mandatory_float', -2.2);
+		   \@mand_float, [qw(-f-2.2)],
+		   'opt_mandatory_float', -2.2);
 test_simple_import('mandatory real number option (long, separate, negative)',
-		 \@mand_float, [qw(--mandatory-float -3.3)],
-		 'opt_mandatory_float', -3.3);
+		   \@mand_float, [qw(--mandatory-float -3.3)],
+		   'opt_mandatory_float', -3.3);
 test_simple_import('mandatory real number option (long, concatenated, negative)',
-		 \@mand_float, [qw(--mandatory-float=-4.4)],
-		 'opt_mandatory_float', -4.4);
+		   \@mand_float, [qw(--mandatory-float=-4.4)],
+		   'opt_mandatory_float', -4.4);
 is($optUsage,
    <<EOU,
 usage: Getopt-Mixed-Help.t [<options>] [--]
@@ -245,26 +250,26 @@ EOU
    'usage of mandatory real number option');
 
 test_simple_import('optional string option (short, empty)',
-		 \@opt_str, [qw(-t)],
-		 'opt_optional_string', '');
+		   \@opt_str, [qw(-t)],
+		   'opt_optional_string', '');
 test_simple_import('optional string option (short, concatenated)',
-		 \@opt_str, [qw(-ttext2)],
-		 'opt_optional_string', 'text2');
+		   \@opt_str, [qw(-ttext2)],
+		   'opt_optional_string', 'text2');
 test_simple_import('optional string option (long, empty)',
-		 \@opt_str, [qw(--optional-string)],
-		 'opt_optional_string', '');
+		   \@opt_str, [qw(--optional-string)],
+		   'opt_optional_string', '');
 test_simple_import('optional string option (long, concatenated)',
-		 \@opt_str, [qw(--optional-string=text4)],
-		 'opt_optional_string', 'text4');
+		   \@opt_str, [qw(--optional-string=text4)],
+		   'opt_optional_string', 'text4');
 test_simple_import('optional string option (unused)',
-		 \@opt_str, [],
-		 'opt_optional_string', undef);
+		   \@opt_str, [],
+		   'opt_optional_string', undef);
 test_simple_import('optional string option (short, concatenated, minus)',
-		 \@opt_str, [qw(-t-text2)],
-		 'opt_optional_string', '-text2');
+		   \@opt_str, [qw(-t-text2)],
+		   'opt_optional_string', '-text2');
 test_simple_import('optional string option (long, concatenated, minus)',
-		 \@opt_str, [qw(--optional-string=-text4)],
-		 'opt_optional_string', '-text4');
+		   \@opt_str, [qw(--optional-string=-text4)],
+		   'opt_optional_string', '-text4');
 is($optUsage,
    <<EOU,
 usage: Getopt-Mixed-Help.t [<options>] [--]
@@ -275,26 +280,26 @@ EOU
    'usage of optional string option');
 
 test_simple_import('optional integer option (short, empty)',
-		 \@opt_int, [qw(-j)],
-		 'opt_optional_integer', 1);
+		   \@opt_int, [qw(-j)],
+		   'opt_optional_integer', 1);
 test_simple_import('optional integer option (short, concatenated)',
-		 \@opt_int, [qw(-j2)],
-		 'opt_optional_integer', 2);
+		   \@opt_int, [qw(-j2)],
+		   'opt_optional_integer', 2);
 test_simple_import('optional integer option (long, empty)',
-		 \@opt_int, [qw(--optional-integer)],
-		 'opt_optional_integer', 1);
+		   \@opt_int, [qw(--optional-integer)],
+		   'opt_optional_integer', 1);
 test_simple_import('optional integer option (long, concatenated)',
-		 \@opt_int, [qw(--optional-integer=4)],
-		 'opt_optional_integer', 4);
+		   \@opt_int, [qw(--optional-integer=4)],
+		   'opt_optional_integer', 4);
 test_simple_import('optional integer option (unused)',
-		 \@opt_int, [],
-		 'opt_optional_integer', undef);
+		   \@opt_int, [],
+		   'opt_optional_integer', undef);
 test_simple_import('optional integer option (short, concatenated, negative)',
-		 \@opt_int, [qw(-j-2)],
-		 'opt_optional_integer', -2);
+		   \@opt_int, [qw(-j-2)],
+		   'opt_optional_integer', -2);
 test_simple_import('optional integer option (long, concatenated, negative)',
-		 \@opt_int, [qw(--optional-integer=-4)],
-		 'opt_optional_integer', -4);
+		   \@opt_int, [qw(--optional-integer=-4)],
+		   'opt_optional_integer', -4);
 is($optUsage,
    <<EOU,
 usage: Getopt-Mixed-Help.t [<options>] [--]
@@ -305,26 +310,26 @@ EOU
    'usage of optional integer option');
 
 test_simple_import('optional real number option (short, empty)',
-		 \@opt_float, [qw(-g)],
-		 'opt_optional_float', 0.0);
+		   \@opt_float, [qw(-g)],
+		   'opt_optional_float', 0.0);
 test_simple_import('optional real number option (short, concatenated)',
-		 \@opt_float, [qw(-g2.2)],
-		 'opt_optional_float', 2.2);
+		   \@opt_float, [qw(-g2.2)],
+		   'opt_optional_float', 2.2);
 test_simple_import('optional real number option (long, empty)',
-		 \@opt_float, [qw(--optional-float)],
-		 'opt_optional_float', 0.0);
+		   \@opt_float, [qw(--optional-float)],
+		   'opt_optional_float', 0.0);
 test_simple_import('optional real number option (long, concatenated)',
-		 \@opt_float, [qw(--optional-float=4.4)],
-		 'opt_optional_float', 4.4);
+		   \@opt_float, [qw(--optional-float=4.4)],
+		   'opt_optional_float', 4.4);
 test_simple_import('optional real number option (unused)',
-		 \@opt_float, [],
-		 'opt_optional_float', undef);
+		   \@opt_float, [],
+		   'opt_optional_float', undef);
 test_simple_import('optional real number option (short, concatenated, negative)',
-		 \@opt_float, [qw(-g-2.2)],
-		 'opt_optional_float', -2.2);
+		   \@opt_float, [qw(-g-2.2)],
+		   'opt_optional_float', -2.2);
 test_simple_import('optional real number option (long, concatenated, negative)',
-		 \@opt_float, [qw(--optional-float=-4.4)],
-		 'opt_optional_float', -4.4);
+		   \@opt_float, [qw(--optional-float=-4.4)],
+		   'opt_optional_float', -4.4);
 is($optUsage,
    <<EOU,
 usage: Getopt-Mixed-Help.t [<options>] [--]
@@ -335,20 +340,20 @@ EOU
    'usage of optional real number option');
 
 test_simple_import('long optional string option (empty)',
-		 ['->-' => '', @long_str_opt],
-		 [qw(--long-optional-string)],
-		 'opt_long_optional_string', '');
+		   ['->-' => '', @long_str_opt],
+		   [qw(--long-optional-string)],
+		   'opt_long_optional_string', '');
 test_simple_import('long optional string option (concatenated)',
-		 ['->-' => '', @long_str_opt],
-		 [qw(--long-optional-string=text5)],
-		 'opt_long_optional_string', 'text5');
+		   ['->-' => '', @long_str_opt],
+		   [qw(--long-optional-string=text5)],
+		   'opt_long_optional_string', 'text5');
 test_simple_import('long optional string option (unused)',
-		 ['->-' => '', @long_str_opt], [],
-		 'opt_long_optional_string', undef);
+		   ['->-' => '', @long_str_opt], [],
+		   'opt_long_optional_string', undef);
 test_simple_import('long optional string option (concatenated, minus)',
-		 ['->-' => '', @long_str_opt],
-		 [qw(--long-optional-string=-text6)],
-		 'opt_long_optional_string', '-text6');
+		   ['->-' => '', @long_str_opt],
+		   [qw(--long-optional-string=-text6)],
+		   'opt_long_optional_string', '-text6');
 is($optUsage,
    <<EOU,
 usage: Getopt-Mixed-Help.t [<options>] [--]
@@ -441,6 +446,70 @@ options:  -o|--option {a,b,c}
               description
 EOU
    'usage of enumeration with value description');
+
+#########################################################################
+# tests using default values from Perl constants:
+
+sub test_simple_default($$$$$$$)
+{
+    my ($description, $r_options, $r_argv, $constant, $default_val,
+	$option_var, $expected) = @_;
+    local $_;
+    # reset option variables:
+    foreach (keys %main::)
+    { $$_ = undef if m/^opt_/ or /^optUsage$/ }
+    # initialise arguments:
+    @ARGV = @$r_argv;
+    # test:
+    eval {
+	import constant $constant => $default_val;
+	import Getopt::Mixed::Help(@$r_options);
+    };
+    is($@, '', $description.' - eval failed');
+    is(scalar(@ARGV), 0, $description.' - parameters are left');
+    is($$option_var, $expected, $description);
+}
+
+test_simple_default('mandatory integer option (using default)',
+		    ['i>mandatory-integer-1=i' => 'a mandatory integer'],
+		    [],
+		    'DEFAULT_MANDATORY_INTEGER_1', 2,
+		    'opt_mandatory_integer_1', 2);
+test_simple_default('mandatory integer option (overriding default)',
+		    ['i>mandatory-integer-2=i' => 'a mandatory integer'],
+		    [qw(-i 1)],
+		    'DEFAULT_MANDATORY_INTEGER_2', 2,
+		    'opt_mandatory_integer_2', 1);
+is($optUsage,
+   <<EOU,
+usage: Getopt-Mixed-Help.t [<options>] [--]
+
+options:  -i|--mandatory-integer-2 <integer>
+              a mandatory integer (defaults to 2)
+EOU
+   'usage of mandatory integer option with default constant');
+test_simple_default('mandatory integer option (overriding default)',
+		    ['->default' => ', default is %s',
+		     'i>mandatory-integer-3=i' => 'a mandatory integer'],
+		    [],
+		    'DEFAULT_MANDATORY_INTEGER_3', 2,
+		    'opt_mandatory_integer_3', 2);
+is($optUsage,
+   <<EOU,
+usage: Getopt-Mixed-Help.t [<options>] [--]
+
+options:  -i|--mandatory-integer-3 <integer>
+              a mandatory integer, default is 2
+EOU
+   'test with renamed default option should succeed');
+eval {
+
+    import constant DEFAULT_XXX => [];
+    import Getopt::Mixed::Help('x>xxx' => 'yy');
+ };
+like($@,
+     qr/^.* constants as default values are not yet supported in $re_msg_tail/,
+     'non-simple constant should fail');
 
 #########################################################################
 # complicated succeeding tests:
@@ -588,6 +657,10 @@ eval {
 	my $output = `$cmd 2>&1`;
 	skip "redirection of output doesn't work as expected ($?): $output", 18
 	    if $? == 0 or $output !~ m/^Died at -e line 1.*$/;
+	# This still doesn't seem to help on windows based platforms
+	# so we skip on them anyway:
+	skip "the tests with redirection of output don't work on Windows", 18
+	    if $^O =~ m/^Cygwin|^MSWin32/i;
 
 	local %ENV;
 	$ENV{PERL5LIB} = join $Config{path_sep}, @INC;
@@ -922,6 +995,8 @@ eval {
 	my $output = `$cmd 2>&1`;
 	skip "redirection of output doesn't work as expected ($?): $output", 1
 	    if $? == 0 or $output !~ m/^Died at -e line 1.*$/;
+	skip "the tests with redirection of output don't work on Windows", 1
+	    if $^O =~ m/^Cygwin|^MSWin32/i;
 
 	local %ENV;
 	$ENV{PERL5LIB} = join $Config{path_sep}, @INC;
