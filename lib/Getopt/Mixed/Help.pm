@@ -35,7 +35,8 @@ Getopt::Mixed::Help is a simplified interface to Getopt::Mixed adding
 usage (help) functionality.  It automatically adds the options -?, -h
 and --help (the last two configurable) to print the usage text.  It
 allows to get option values from the environment (if the operating
-system it runs on supports environment variables).  It can also add
+system it runs on supports environment variables).  It can
+automatically get default values from Perl constants.  It can also add
 different flavours of support for multiple options.  Finally it
 supports debugging output of the options used.
 
@@ -86,6 +87,10 @@ module will print all option values and all remaining parameters to
 standard error.  The name of this option may be changed, see
 C<"changing the debug option"> below in the L</"CHANGING DEFAULT
 BEHAVIOUR"> section.
+
+Perl constants with the prefix C<DEBUG_> and a name matching the
+option are used as default values for the options, see below for
+details.
 
 =head1 EXPORT
 
@@ -458,7 +463,7 @@ use Getopt::Mixed;
 
 use vars '$optUsage';
 
-our $VERSION = '0.21';
+our $VERSION = '0.22';
 
 # default strings (they are the ones used for indent!):
 use constant DEFAULT_USAGE => 'usage';

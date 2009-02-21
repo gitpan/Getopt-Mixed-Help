@@ -1,5 +1,8 @@
 Revision history for Perl extension Getopt::Mixed::Help.
 
+0.22	(20.02.2009)
+	still another fixed test for Windows
+
 0.21	(05.04.2008-18.12.2008)
 	hopefully finally fixed tests for Windows
 	added support of default constants

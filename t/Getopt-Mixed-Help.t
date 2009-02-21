@@ -993,9 +993,9 @@ eval {
  SKIP: {
 	my $cmd = "perl -e 'die'";
 	my $output = `$cmd 2>&1`;
-	skip "redirection of output doesn't work as expected ($?): $output", 1
+	skip "redirection of output doesn't work as expected ($?): $output", 2
 	    if $? == 0 or $output !~ m/^Died at -e line 1.*$/;
-	skip "the tests with redirection of output don't work on Windows", 1
+	skip "the tests with redirection of output don't work on Windows", 2
 	    if $^O =~ m/^Cygwin|^MSWin32/i;
 
 	local %ENV;
