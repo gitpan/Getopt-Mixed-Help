@@ -8,7 +8,7 @@ Getopt::Mixed::Help - combine L<C<Getopt::Mixed>> with usage and help
 
 =head1 SYNOPSIS
 
-    use DEFAULT_LOOPS => 10;
+    use constant DEFAULT_LOOPS => 10;
     use Getopt::Mixed::Help
 	('<filenames>...' => 'filenames to be processed',
 	 'ENV' => 'SCRIPT_OPT_',
@@ -280,8 +280,8 @@ starts with the words C<defaults to>.  See below how to change that.
 Note that all Perl constants with default values must be defined
 before the C<use> command including this module, otherwise they have
 no effect.  Also note that they must belong to the C<main::>
-namespace.  And finally note that only simple values are supported
-yet.
+namespace.  And finally note that only simple values and array
+references are supported yet.
 
 =head1 CHANGING DEFAULT BEHAVIOUR
 
@@ -463,7 +463,7 @@ use Getopt::Mixed;
 
 use vars '$optUsage';
 
-our $VERSION = '0.22';
+our $VERSION = '0.24';
 
 # default strings (they are the ones used for indent!):
 use constant DEFAULT_USAGE => 'usage';
@@ -551,6 +551,12 @@ sub import
 		    {
 			$default_text =
 			    sprintf($default_template, &$default_cref);
+		    }
+		    elsif (ref(&$default_cref) eq 'ARRAY')
+		    {
+			$default_text =
+			    sprintf($default_template,
+				    join(', ', @{&$default_cref}));
 		    }
 		    else
 		    {
@@ -793,7 +799,9 @@ sub import
 		  $indent_opt2, '$', $_, ':',
 		  (' ' x ( $max_length - length($_) + 1 )),
 		  (! defined $$_ ? 'undef' :
-		   $$_ =~ m/^-?\d+(?:\.\d+)?$/ ? $$_ : '"'.$$_.'"'),
+		   ref($$_) eq 'ARRAY'
+		   ? '('.join(', ', @$$_).')'
+		   : $$_ =~ m/^-?\d+(?:\.\d+)?$/ ? $$_ : '"'.$$_.'"'),
 		  "\n");
 	}
 	print STDERR "parameter:\n" if @ARGV;
@@ -824,7 +832,7 @@ unnoticed!
 
 =head1 AUTHOR
 
-Thomas Dorner, E<lt>dorner (AT) pause.orgE<gt>
+Thomas Dorner, E<lt>dorner (AT) cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 

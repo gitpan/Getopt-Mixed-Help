@@ -5,7 +5,7 @@
 
 #########################################################################
 
-use Test::More tests => 486;
+use Test::More tests => 494;
 
 use Config;
 use File::Spec;
@@ -23,7 +23,7 @@ $perl .= ' ' . $ENV{HARNESS_PERL_SWITCHES}
 #########################################################################
 # identical part of messages:
 my $re_msg_tail =
-    qr/Getopt::Mixed::Help at .*Getopt-Mixed-Help\.t line \d{2,}$/;
+    qr/Getopt::Mixed::Help at .*Getopt-Mixed-Help\.t line \d{2,}\.?$/;
 
 # some parameter lists used later:
 my @parameter	= ('<filenames>...'		=> 'filenames to be used');
@@ -467,7 +467,14 @@ sub test_simple_default($$$$$$$)
     };
     is($@, '', $description.' - eval failed');
     is(scalar(@ARGV), 0, $description.' - parameters are left');
-    is($$option_var, $expected, $description);
+    if (ref($expected) eq 'ARRAY')
+    {
+	is_deeply($$option_var, $expected, $description);
+    }
+    else
+    {
+	is($$option_var, $expected, $description);
+    }
 }
 
 test_simple_default('mandatory integer option (using default)',
@@ -488,7 +495,7 @@ options:  -i|--mandatory-integer-2 <integer>
               a mandatory integer (defaults to 2)
 EOU
    'usage of mandatory integer option with default constant');
-test_simple_default('mandatory integer option (overriding default)',
+test_simple_default('mandatory integer option (overriding default text)',
 		    ['->default' => ', default is %s',
 		     'i>mandatory-integer-3=i' => 'a mandatory integer'],
 		    [],
@@ -502,9 +509,22 @@ options:  -i|--mandatory-integer-3 <integer>
               a mandatory integer, default is 2
 EOU
    'test with renamed default option should succeed');
+test_simple_default('mandatory multiple integer option (using defaults)',
+		    ['i>>mandatory-integer-4=i' => 'some mandatory integers'],
+		    [],
+		    'DEFAULT_MANDATORY_INTEGER_4', [ 4, 2 ],
+		    'opt_mandatory_integer_4', [4, 2] );
+is($optUsage,
+   <<EOU,
+usage: Getopt-Mixed-Help.t [<options>] [--]
+
+options:  -i|--mandatory-integer-4 <integer>
+              some mandatory integers (defaults to 4, 2)
+EOU
+   'usage of mandatory integer option with default constant array');
 eval {
 
-    import constant DEFAULT_XXX => [];
+    import constant DEFAULT_XXX => {};
     import Getopt::Mixed::Help('x>xxx' => 'yy');
  };
 like($@,
@@ -655,11 +675,11 @@ eval {
 	# the tests if we forsee any problems.
 	my $cmd = "perl -e 'die'";
 	my $output = `$cmd 2>&1`;
-	skip "redirection of output doesn't work as expected ($?): $output", 18
+	skip "redirection of output doesn't work as expected ($?): $output", 22
 	    if $? == 0 or $output !~ m/^Died at -e line 1.*$/;
 	# This still doesn't seem to help on windows based platforms
 	# so we skip on them anyway:
-	skip "the tests with redirection of output don't work on Windows", 18
+	skip "the tests with redirection of output don't work on Windows", 22
 	    if $^O =~ m/^Cygwin|^MSWin32/i;
 
 	local %ENV;
@@ -844,6 +864,41 @@ switches:  -b|--boolean
 (*) some more text
 EOM
 	   'calling for help with altered texts should fail with alt. usage text');
+
+	$cmd = ($perl." -e '".
+		'use Getopt::Mixed::Help("'.
+		join('", "',
+		     'd>debug' => 'turn on debugging',
+		     'i>>integer=i' => 'a mandatory integer').
+		'");'.
+		"' -- -d -i 1 -i 2 -i 3");
+	$output = `$cmd 2>&1`;
+	is($?, 0, 'test with debug output and multiple options should succeed');
+	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
+	is($output, <<EOM,
+options:  
+          \$opt_debug:   1
+          \$opt_integer: (1, 2, 3)
+EOM
+	   'correct debugging output for multiple options');
+
+	$cmd = ($perl." -e '".
+		'use constant DEFAULT_INTEGER => [4, 2]; '.
+		'use Getopt::Mixed::Help("'.
+		join('", "',
+		     'd>debug' => 'turn on debugging',
+		     'i>>integer=i' => 'a mandatory integer').
+		'");'.
+		"' -- -d");
+	$output = `$cmd 2>&1`;
+	is($?, 0, 'test with debug output and multiple default should succeed');
+	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
+	is($output, <<EOM,
+options:  
+          \$opt_debug:   1
+          \$opt_integer: (4, 2)
+EOM
+	   'correct debugging output for multiple default');
     }
 };
 is($@, '', 'tests with subprograms should not fail the surrounding eval');

@@ -1,4 +1,4 @@
-Getopt-MixedHelp version 0.22
+Getopt-MixedHelp version 0.24
 =============================
 
 Getopt::Mixed::Help is a simplified interface to Getopt::Mixed adding
@@ -31,7 +31,7 @@ This module requires Getopt::Mixed.
 
 COPYRIGHT AND LICENSE
 
-Copyright (C) 2004-2008 by Thomas Dorner
+Copyright (C) 2004-2009 by Thomas Dorner
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.6.1 or,
