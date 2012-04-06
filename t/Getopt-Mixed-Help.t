@@ -600,7 +600,7 @@ test_whole_import('all short optional options as defaults',
 		  [undef, undef, undef, undef, undef, '', 1, 0.0],
 		  []);
 test_whole_import('all short optional options as defaults, parameter',
-		  [qw(-t -j -g 1.0)],
+		  [qw(-t -j -g -- 1.0)],
 		  [undef, undef, undef, undef, undef, '', 1, 0.0],
 		  [1.0]);
 test_whole_import('all short optional options as defaults, boolean',
@@ -608,7 +608,7 @@ test_whole_import('all short optional options as defaults, boolean',
 		  [1, undef, undef, undef, undef, '', 1, 0.0],
 		  []);
 test_whole_import('all short optional options as defaults, boolean, parameter',
-		  [qw(-b -t -j -g 2.0)],
+		  [qw(-b -t -j -g -- 2.0)],
 		  [1, undef, undef, undef, undef, '', 1, 0.0],
 		  [2.0]);
 test_whole_import('all short optional options',
@@ -642,7 +642,7 @@ test_whole_import('two single options coming from the environment',
 		  [undef, undef, undef, 42, undef, 'Nvironment', undef, undef],
 		  []);
 test_whole_import('single environment option gets overwritten',
-		  ['-t=string'],
+		  ['--optional-string=string'],
 		  [undef, undef, undef, 42, undef, 'string', undef, undef],
 		  []);
 delete $ENV{TEST_OPT_MANDATORY_INTEGER};
@@ -653,7 +653,7 @@ test_whole_import('two options coming from one environment variable',
 		  [undef, undef, 'all_together', undef, undef, undef, 42, undef],
 		  []);
 test_whole_import('single combined environment option gets overwritten',
-		  ['-s=override'],
+		  ['--mandatory-string=override'],
 		  [undef, undef, 'override', undef, undef, undef, 42, undef],
 		  []);
 $ENV{TEST_OPT_MANDATORY_STRING} = 'Nvironment';
@@ -690,7 +690,7 @@ eval {
 	isnt($?, 0, 'unknown option should fail');
 	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
 	is($output, <<EOM,
-fail.pl: unrecognized option `-x'
+Unknown option: x
 Try `fail.pl --help' for more information.
 EOM
 	   'unknown option should fail with error message');
@@ -732,7 +732,7 @@ EOM
 		'use Getopt::Mixed::Help("'.
 		join('", "', @all, 'd>debug' => 'turn on debugging').
 		'");'.
-		"' -- -d -s=Test -g=5.0 -i 42 x y z");
+		"' -- -d -s Test -g 5.0 -i 42 x y z");
 	$output = `$cmd 2>&1`;
 	is($?, 0, 'test with normal debug option should succeed');
 	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
@@ -797,7 +797,7 @@ EOM
 	isnt($?, 0, 'calling for help after rename should fail');
 	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
 	is($output,
-	   "-e: unrecognized option `-h'\n",
+	   "Unknown option: h\nTry `-e --Hilfe' for more information.\n",
 	   'calling for help after rename should fail with usage text');
 
 	$cmd = ($perl." -e '".
@@ -805,7 +805,7 @@ EOM
 		join('", "', @all, '->debug' => 'verbose',
 		     'v>verbose' => 'turn on debugging').
 		'");'.
-		"' -- -s=Test -g=5.0 -v -i 42 4 2 4.7");
+		"' -- -s Test -g 5.0 -v -i 42 4 2 4.7");
 	$output = `$cmd 2>&1`;
 	is($?, 0, 'test with renamed debug option should succeed');
 	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 
@@ -989,7 +989,7 @@ test_multiple_import
 $ENV{TEST_OPT_MANDATORY_INTEGER} = 42;
 $ENV{TEST_OPT_OPTIONAL_STRING} = 'Nvironment';
 test_multiple_import
-    ('array test - multiples',
+    ('array test - multiples, ignore ENV',
      [@all, '->multiple' => undef],
      [qw(-t4 -b -s-b -t2 -b -i-1 -g4.2 --long-optional-string=42 -j47 -g0.5
 	 -i -3 -f -1.2 -f2.0 -f 3.4 -j-5 --long-optional-string=42 5 0)],
@@ -1061,7 +1061,7 @@ eval {
 		join('", "', @all, 'd>debug' => 'turn on debugging',
 		     '->multiple' => ', ').
 		'");'.
-		"' -- -d -s=Test -s=Case -i=5 -t=x -t -t=z -g=5.0 -g-47.42 -i 42");
+		"' -- -d -sTest -sCase -i5 -tx -t -tz -g5.0 -g-47.42 -i 42");
 	$output = `$cmd 2>&1`;
 	is($?, 0, 'concat test - multiples, debug - should succeed');
 	$output =~ s/Devel::Cover.*//s;	# ignore add. output of Devel::Cover 

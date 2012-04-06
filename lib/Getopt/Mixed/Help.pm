@@ -31,7 +31,7 @@ Getopt::Mixed::Help - combine L<C<Getopt::Mixed>> with usage and help
 
 =head1 ABSTRACT
 
-Getopt::Mixed::Help is a simplified interface to Getopt::Mixed adding
+Getopt::Mixed::Help is a simplified interface to Getopt::Long adding
 usage (help) functionality.  It automatically adds the options -?, -h
 and --help (the last two configurable) to print the usage text.  It
 allows to get option values from the environment (if the operating
@@ -40,7 +40,7 @@ automatically get default values from Perl constants.  It can also add
 different flavours of support for multiple options.  Finally it
 supports debugging output of the options used.
 
-So like Getopt::Mixed it is (just another) module that parses options
+So like Getopt::Long it is (just another) module that parses options
 passed on the command line into variables while removing them from
 @ARGV.  Only normal parameters remain in @ARGV.
 
@@ -50,9 +50,11 @@ The module uses a direct import mechanism called with a hash as
 parameter.  The structure of the hash is as follows:
 
 The key is a combined (SHORT > LONG [ARGUMENT SPECIFIER [VALUE
-IDENTIFIER]]) option description for Getopt::Mixed, except for the
-VALUE IDENTIFIER which is simply included into the help text.  The
-value following the key is simply the help text for this option.
+IDENTIFIER]]) option description for the outdated module
+L<C<Getopt::Mixed>>, except for the VALUE IDENTIFIER which is simply
+included into the help text.  The value following the key is simply
+the help text for this option.  The examples should make everything
+clear even if you are not familiar with L<C<Getopt::Mixed>>.
 
 If the second character of the first key is not C<E<gt>>, the first
 key is taken as descriptive identifiers for additional parameters and
@@ -457,13 +459,15 @@ use warnings;
 
 use Carp;
 use File::Basename;
-use Getopt::Mixed;
+use Getopt::Long qw(:config posix_default no_ignore_case bundling_override
+);
+# debug);
 
 #******************************************************************
 
 use vars '$optUsage';
 
-our $VERSION = '0.24';
+our $VERSION = '0.25';
 
 # default strings (they are the ones used for indent!):
 use constant DEFAULT_USAGE => 'usage';
@@ -510,11 +514,12 @@ sub import
     }
     $optUsage .= "\n\n";
 
+    my $help_long = 'help';
     my $help_opt_name = 'opt_help';
-    my $help_options = 'help h>help ?>help';
+    my $help_options = 'help|h|?+';
     my $debug_opt_name = 'opt_debug';
 
-    my $options = '';
+    my @options = ();
     my @option_vars = ();
     my %default_value = ();
     my %option_type = ();
@@ -571,12 +576,18 @@ sub import
 	    if ($opt_valtext  and  $specifier =~ m/^=/)
 	    {
 		if ($opt_valtext =~ m/^{.*}$/)
-		{ $opt_valtext = ' '.$opt_valtext }
+		{
+		    $opt_valtext = ' '.$opt_valtext;
+		}
 		else
-		{ $opt_valtext = ' <'.$opt_valtext.'>' }
+		{
+		    $opt_valtext = ' <'.$opt_valtext.'>';
+		}
 	    }
 	    elsif ($opt_valtext  and  $specifier =~ m/^:/)
-	    { $opt_valtext = ' [<'.$opt_valtext.'>]' }
+	    {
+		$opt_valtext = ' [<'.$opt_valtext.'>]';
+	    }
 	    elsif ($specifier =~ m/^=/)
 	    {
 		$opt_valtext = ($specifier =~ m/i$/ ? ' <integer>' :
@@ -594,16 +605,23 @@ sub import
 	    {
 		die 'internal inconsistency: specifierless value text in ',
 		    $option
-	    }
+		}
 	    else
-	    { $opt_valtext = '' }
+	    {
+		$opt_valtext = '';
+	    }
 	    $optUsage .= 0 == @option_vars ? $indent_opt1 : $indent_opt2;
 	    $optUsage .= '-'.$short_option.'|' if defined $short_option;
 	    $optUsage .= '--'.$long_option.$opt_valtext."\n";
 	    $optUsage .= $indent_help.(shift).$default_text."\n";
-	    $options .= ' '.$long_option.$specifier;
-	    $options .= ' '.$short_option.'>'.$long_option
-		if defined $short_option;
+	    my $option_key = $long_option;
+	    $option_key .= '|'.$short_option if defined $short_option;
+	    # fix default numeric values of optional integer parameters:
+	    $option_key .= $specifier eq ':i' ? ':+' : $specifier;
+	    {
+		no strict 'refs';
+		push @options, $option_key, *{$var}{SCALAR};
+	    }
 	    push @option_vars, $var;
 	    $option_type{$var} = $specifier;
 	    $option_type{$var} =~ s/[:=]//;
@@ -613,20 +631,29 @@ sub import
 		croak('multiple option support per option and per global',
 		      ' flag is mutually exclusive in ', __PACKAGE__)
 		    if $use_multiple;
+		$options[-2] .= '@';
 		$multiple_options{$var} = $long_option;
 	    }
 	    # Undefined optional options must be defaulted to undef to
 	    # distinguish them from the default value "empty string":
 	    if ($specifier =~ m/^:i$/)
-	    { $optional_integers{$var} = 1 }
+	    {
+		$optional_integers{$var} = 1;
+	    }
 	    elsif ($specifier =~ m/^:f$/)
-	    { $optional_floats{$var} = 0.0 }
+	    {
+		$optional_floats{$var} = 0.0;
+	    }
 	}
 
 	elsif ($option =~ m/^\(.+\)$/)
-	{ $optUsage .= "\n".(shift)."\n" }
+	{
+	    $optUsage .= "\n".(shift)."\n";
+	}
 	elsif ($option eq '->-')
-	{ shift }
+	{
+	    shift;
+	}
 	elsif ($option eq '->debug')
 	{
 	    $_ = shift;
@@ -646,8 +673,9 @@ sub import
 	    $_ = shift;
 	    m/^(\w)>([-a-z0-9]{2,})$/i  or
 		croak 'bad renaming of help in ', __PACKAGE__;
+	    $help_long = $2;
 	    $help_opt_name = 'opt_'.$2;
-	    $help_options = $2.' '.$1.'>'.$2.' ?>'.$2;
+	    $help_options = $2.'|'.$1.'|?+';
 	}
 	elsif ($option eq '->multiple')
 	{
@@ -665,9 +693,13 @@ sub import
 	    $indent_help = ' ' x (length($options_text) + 7);
 	}
 	elsif ($option eq '->usage')
-	{ $usage_text = shift }
+	{
+	    $usage_text = shift;
+	}
 	elsif ($option eq 'ENV')
-	{ $env_prefix = shift }
+	{
+	    $env_prefix = shift;
+	}
 	elsif ($option eq 'ENV_')
 	{
 	    $env_prefix = shift;
@@ -683,85 +715,90 @@ sub import
 	    }
 	}
 	else
-	{ croak 'bad option ', $option, ' passed to ', __PACKAGE__ }
+	{
+	    croak 'bad option ', $option, ' passed to ', __PACKAGE__;
+	}
+    }
+    # for global multiple set-up using arrays:
+    if ($use_multiple)
+    {
+	for ($_ = 0; $_ < $#options; $_ += 2)
+	{
+	    $options[$_] =~ s/:\+/:i/;
+	    if ($options[$_] =~ m/[:=][fis]$/)
+	    {
+		$options[$_] .= '@';
+	    }
+	    else
+	    {
+		$options[$_] .= ':+';
+	    }
+	}
     }
     # finish help text:
     $optUsage =
 	$usage_text.': '.basename($0).' [<'.$options_text.'>] [--]'.$optUsage;
 
-    Getopt::Mixed::init($help_options.$options);
-    $Getopt::Mixed::order = $Getopt::Mixed::REQUIRE_ORDER;
+    {
+	no strict 'refs';
+	unshift @options, $help_options, *{$help_opt_name}{SCALAR};
+    }
+    unless (GetOptions(@options))
+    {
+	$_ = $0;
+	s|.*/||;
+	print STDERR "Try `$_ --$help_long' for more information.\n";
+	exit 1;
+    }
 
     no strict 'refs';
-    # option loop (@ARGV):
-    while (my ($option, $value) = Getopt::Mixed::nextOption())
+    no warnings 'once';
+    if ($$help_opt_name  or  ($has_only_options  and  0 <= $#ARGV))
     {
-        $option =~ s/\W/_/g;
-	$option = 'opt_'.$option;
-	# boolean options:
-	if (not defined $value)
+	print STDERR $optUsage; exit -1;
+    }
+
+    # handle concatenated multiples:
+    if ($use_multiple)
+    {
+	if (defined $multiple)
 	{
-	    $value = 1
-	}
-	# empty optional integer option:
-	elsif ($value eq '' and defined $optional_integers{$option})
-	{
-	    $value = $optional_integers{$option}
-	}
-	# empty optional float option:
-	elsif ($value eq '' and defined $optional_floats{$option})
-	{
-	    $value = $optional_floats{$option}
-	}
-	# no support for multiple options:
-	if (not $use_multiple and not defined $multiple_options{$option})
-	{
-	    $$option = $value;
-	}
-	# support for multiple options, concatenation flavour:
-	elsif (defined $multiple)
-	{
-	    if (not defined $$option)
-	    { $$option = $value }
-	    else
+	    foreach my $option (@option_vars)
 	    {
-		if ($option_type{$option} eq ''  or
-		    $option_type{$option} eq 'i'  or
-		    $option_type{$option} eq 'f')
-		{ $$option += $value }
-		elsif ($option_type{$option} eq 's')
-		{ $$option .= $multiple . $value }
+		next unless defined $$option;
+		next unless ref($$option) eq 'ARRAY';
+		if ($option_type{$option} eq 's')
+		{
+		    $$option = join($multiple, @$$option);
+		}
+		elsif ($option_type{$option} eq 'i'  or
+		       $option_type{$option} eq 'f')
+		{
+		    my $sum = 0;
+		    $sum += $_ foreach @$$option;
+		    $$option = $sum;
+		}
 		else
 		{
 		    die 'internal inconsistency: $option_type{$option} is ',
-			$option_type{$option}
+			$option_type{$option};
 		}
 	    }
 	}
 	# support for multiple options, array flavour:
 	else
 	{
-	    if (not defined $$option)
-	    { $$option = $value }
-	    else
+	    foreach my $option (@option_vars)
 	    {
-		if (ref($$option) eq '')
-		{ $$option = [ $$option, $value ] }
-		elsif (ref($$option) eq 'ARRAY')
-		{ push @{$$option}, $value }
-		else
-		{
-		    die 'internal inconsistency: ref($$option) is ',
-			ref($$option)
-		}
+		next unless $option_type{$option} eq '';
+		next	    # paranoia check, this should never occur!
+		    if ref($$option) ne '';
+		next if $$option == 1;
+		$_ = [ (1) x $$option ];
+		$$option = $_;
 	    }
 	}
     }
-    Getopt::Mixed::cleanup();
-
-    no warnings 'once';
-    if ($$help_opt_name  or  ($has_only_options  and  0 <= $#ARGV))
-    { print STDERR $optUsage; exit -1 }
 
     # get defaults from environment, if applicable:
     if (defined $env_prefix)
@@ -785,8 +822,19 @@ sub import
     # declare main option variables and export local option variables to it:
     *{$package.'::optUsage'} = \$optUsage;
     {
-	no warnings "once";	# disable "GM::opt_ ... used only once" warning
-	*{$package.'::'.$_} = \$$_ foreach (@option_vars);
+	no warnings "once"; # disable "GMH::opt_ ... used only once" warning
+	foreach (@option_vars)
+	{
+	    # single element arrays become scalars instead:
+	    if (ref($$_) eq 'ARRAY' and 1 == @$$_)
+	    {
+		*{$package.'::'.$_} = \$$_->[0];
+	    }
+	    else
+	    {
+		*{$package.'::'.$_} = \$$_;
+	    }
+	}
     }
 
     # print debug info, if $opt_debug is used:
@@ -818,11 +866,17 @@ __END__
 
 =head1 KNOWN BUGS
 
-The ones from L<C<Getopt::Mixed>> and maybe some more.  Tell me, if
+The ones from L<C<Getopt::Long>> and maybe some more.  Tell me, if
 you find one.
+
+Getopt::Mixed::Help used to support setting short options using C<=>,
+e.g. C<test_script -d -v=2>.  This no longer works as it this was a
+feature of the underlying L<C<Getopt::Mixed>> which does not exist in
+L<C<Getopt::Long>>.
 
 =head1 SEE ALSO
 
+L<C<Getopt::Long>>,
 L<C<Getopt::Mixed>>
 
 The tests for this module were checked with L<C<Devel::Cover>> to make
@@ -836,7 +890,7 @@ Thomas Dorner, E<lt>dorner (AT) cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2004-2008 by Thomas Dorner
+Copyright (C) 2004-2012 by Thomas Dorner
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.6.1 or,

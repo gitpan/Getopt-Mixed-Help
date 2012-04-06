@@ -1,10 +1,13 @@
 Revision history for Perl extension Getopt::Mixed::Help.
 
+0.25	(07.03.2011-.04.2012)
+	big rework: replaced Getopt::Mixed with Getopt::Long
+	fixed error message with modified help option
+
 0.24	(09.03.2012)
 	fixed tests for Carp >= 1.25
 
 0.23	(07.03.2011-10.08.2011)
-	big rework: replaced Getopt::Mixed with Getopt::Long
 	added support for ARRAY defaults
 
 0.22	(20.02.2009)

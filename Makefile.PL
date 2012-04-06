@@ -6,7 +6,7 @@ WriteMakefile
           'NAME' => 'Getopt::Mixed::Help',
           'VERSION_FROM' => 'lib/Getopt/Mixed/Help.pm',
           'PREREQ_PM' => {
-                           'Getopt::Mixed' => 0
+                           'Getopt::Long' => 0
                          },
           'INSTALLDIRS' => 'site',
           'EXE_FILES' => [],

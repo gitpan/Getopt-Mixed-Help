@@ -1,14 +1,14 @@
 #!/usr/bin/perl
 #
 # This script shows one example of each general type.  Try calling it
-# with -h (-?, --help) or -d (--debug) to play around with the
+# with -H (-?, --Hilfe) or -d (--debug) to play around with the
 # interface.
 #
 # Try also to set environment variables like GMH_MANDATORY_STRING or
 # GMH__.
 #
 # Author: Thomas Dorner
-# Copyright: (C) 2007-2008 by Thomas Dorner (Artistic License)
+# Copyright: (C) 2007-2012 by Thomas Dorner (Artistic License)
 
 use strict;
 use warnings;
@@ -29,6 +29,7 @@ BEGIN {
 	(
 	 '<parameters>...'		    => 'additional parameters',
 	 'ENV_'				    => 'GMH_',
+	 '->help' => 'H>Hilfe',
 	 'd>debug'			    => 'turn on debugging information',
 	 's>mandatory-string=s text'	    => 'a mandatory string',
 	 'i>mandatory-integer=i number'	    => 'a mandatory integer (1)',
@@ -44,7 +45,7 @@ BEGIN {
 unless ($opt_debug)
 {
     print <<EOT
-Please call this script with -? (-h, --help) or -d (--debug) to test it and
+Please call this script with -? (-H, --Hilfe) or -d (--debug) to test it and
 to play around with the interface.
 
 Try also to set environment variables like GMH_MANDATORY_STRING or GMH__.

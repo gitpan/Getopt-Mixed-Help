@@ -14,7 +14,7 @@ my $build = Module::Build->new
    create_readme => 0,
    create_makefile_pl => 'traditional',
    requires => { perl => '5.6.1',
-                 'Getopt::Mixed' => 0
+                 'Getopt::Long' => 0
 	       },
    recommends => { 'Test::Pod' => 0, 'Test::Pod::Coverage' => 0 },
   );
