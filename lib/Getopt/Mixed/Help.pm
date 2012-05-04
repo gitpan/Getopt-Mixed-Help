@@ -467,7 +467,7 @@ use Getopt::Long qw(:config posix_default no_ignore_case bundling_override
 
 use vars '$optUsage';
 
-our $VERSION = '0.25';
+our $VERSION = '0.26';
 
 # default strings (they are the ones used for indent!):
 use constant DEFAULT_USAGE => 'usage';

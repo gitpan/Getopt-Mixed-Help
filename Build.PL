@@ -13,7 +13,7 @@ my $build = Module::Build->new
    license => 'perl',
    create_readme => 0,
    create_makefile_pl => 'traditional',
-   requires => { perl => '5.6.1',
+   requires => { perl => '5.8.9',
                  'Getopt::Long' => 0
 	       },
    recommends => { 'Test::Pod' => 0, 'Test::Pod::Coverage' => 0 },

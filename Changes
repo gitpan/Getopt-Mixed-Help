@@ -1,6 +1,9 @@
 Revision history for Perl extension Getopt::Mixed::Help.
 
-0.25	(07.03.2011-.04.2012)
+0.26	(04.05.2012)
+	requires now 5.8.9 cause Getopt::Long<2.37 has problems with arrays
+
+0.25	(07.03.2011-06.04.2012)
 	big rework: replaced Getopt::Mixed with Getopt::Long
 	fixed error message with modified help option
 
